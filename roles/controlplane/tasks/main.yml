@@ -1,0 +1,107 @@
+- name: ensure directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/kubernetes/config
+    - /var/lib/kubernetes
+
+- name: copy certificates
+  copy:
+    src: "/home/ahmed/{{ item }}"
+    dest: /var/lib/kubernetes
+    remote_src: yes
+  with_items:
+    - ca.pem
+    - ca-key.pem
+    - kube-apiserver-key.pem
+    - kube-apiserver.pem
+    - service-account-key.pem
+    - service-account.pem
+    - encryption-config.yaml
+
+- name: download master component binaries
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: 0755
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubectl
+
+- name: create api-server config
+  template:
+    src: kube-apiserver.service.j2
+    dest: /etc/systemd/system/kube-apiserver.service
+
+- name: copy kube-controller-manager.kubeconfig
+  copy:
+    src: /home/ahmed/kube-controller-manager.kubeconfig
+    dest: /var/lib/kubernetes
+    remote_src: yes
+
+- name: template kube-controller-manager.service
+  template:
+    src: kube-controller-manager.service.j2
+    dest: /etc/systemd/system/kube-controller-manager.service
+
+- name: copy kube-scheduler.kubeconfig
+  copy:
+    src: /home/ahmed/kube-scheduler.kubeconfig
+    dest: /var/lib/kubernetes
+    remote_src: yes
+
+- name: copy kube-scheduler.yaml
+  copy:
+    src: kube-scheduler.yaml
+    dest: /etc/kubernetes/config
+
+- name: copy kube-scheduler.service
+  copy:
+    src: kube-scheduler.service
+    dest: /etc/systemd/system
+
+- name: start master component services
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+# works without parameter kubeconfig: kubectl get componentstatuses
+- name: verify, if the k8s cluster is in Healthy state
+  shell: kubectl get componentstatuses --kubeconfig /home/ahmed/admin.kubeconfig
+  register: result
+  until: result.stdout.find("Healthy") != -1
+  retries: 5
+  delay: 10
+  when: inventory_hostname == 'master-0'
+
+- name: Show output of k8s cluster state
+  debug:
+    msg: "{{ result.stdout_lines }}"
+  when: inventory_hostname == 'master-0'
+
+# Apply access roles for kube-apiserver
+- name: Copy ClusterRole and ClusterRoleBinding for kube-apiserver accessing kubelets
+  copy:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/config/
+  with_items:
+  - kube-apiserver-cluster-role.yaml
+  - kube-apiserver-cluster-role-binding.yaml
+  when: inventory_hostname == "master-0"
+
+- name: Apply ClusterRole for kube-apiserver accessing kubelets
+  shell: kubectl apply --kubeconfig /home/ahmed/admin.kubeconfig -f /etc/kubernetes/config/kube-apiserver-cluster-role.yaml
+  when: inventory_hostname == "master-0"
+
+- name: Apply ClusterRoleBinding for kube-apiserver accessing kubelets
+  shell: kubectl apply --kubeconfig /home/ahmed/admin.kubeconfig -f /etc/kubernetes/config/kube-apiserver-cluster-role-binding.yaml
+  when: inventory_hostname == "master-0"

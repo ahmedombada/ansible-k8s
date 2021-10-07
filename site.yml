@@ -1,0 +1,152 @@
+# - hosts: all
+#   tasks:
+#   - apt:
+#       cache_valid_time: 3600
+#       update_cache: yes
+#   become: yes
+
+- name: set up the certificate authority
+  hosts: localhost
+  connection: local
+  roles:
+    - ca
+  tags:
+    - ca
+  become: yes
+
+- name: copy certs to master nodes
+  hosts: masters
+  tasks:
+  - copy:
+      src: /k8s/certificates/{{item}}
+      dest: /home/ahmed/
+    with_items:
+      - ca.pem
+      - ca-key.pem
+      - kube-apiserver-key.pem
+      - kube-apiserver.pem 
+      - service-account-key.pem
+      - service-account.pem
+  become: yes
+
+
+- name: copy docker-registry certs to /registry/certs
+  hosts: masters
+  tasks:
+  - copy:
+      src: /k8s/certificates/{{item}}
+      dest: /registry/certs/
+    with_items:
+      - docker-registry.pem
+      - docker-registry-key.pem
+  become: yes
+  tags:
+    - cpr
+
+- name: copy certs to worker nodes
+  hosts: workers
+  tasks:
+  - copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:
+    - { src: '/k8s/certificates/ca.pem', dest: '/home/ahmed/' }
+    - { src: '/k8s/certificates/{{inventory_hostname}}.pem', dest: '/home/ahmed/' }
+    - { src: '/k8s/certificates/{{inventory_hostname}}-key.pem', dest: '/home/ahmed/' }
+  become: yes
+
+- name: generate configuration files
+  hosts: localhost
+  connection: local
+  roles:
+    - configurationfiles
+  tags:
+    - configurationfiles
+  become: true
+
+- name: copy configuration files to master nodes
+  hosts: masters
+  tasks:
+  - copy:
+      src: /k8s/configurationfiles/{{item}}
+      dest: /home/ahmed/
+    with_items:
+      - admin.kubeconfig
+      - kube-controller-manager.kubeconfig
+      - kube-scheduler.kubeconfig
+  become: yes
+
+
+- name: copy configuration files to worker nodes
+  hosts: workers
+  tasks:
+  - copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:
+      - { src: '/k8s/configurationfiles/{{inventory_hostname}}.kubeconfig', dest: '/home/ahmed/' }
+      - { src: '/k8s/configurationfiles/kube-proxy.kubeconfig', dest: '/home/ahmed/' }
+  become: yes
+
+- name: create encryption key
+  hosts: localhost
+  connection: local
+  roles:
+    - encryption
+  tags:
+    - encryption
+  become: true 
+
+- name: copy encryption key to controllers
+  hosts: masters
+  tasks:
+  - copy:
+      src: /k8s/encryption/{{item}}
+      dest: /home/ahmed/
+    with_items:
+      - encryption-config.yaml
+  become: yes
+
+
+- name: setup etcd
+  hosts: masters
+  become: yes
+  roles:
+  - etcd
+  tags:
+  - etcd
+
+- name: setup the control plane
+  hosts: masters
+  become: yes
+  roles:
+  - controlplane
+  tags:
+  - controlplane
+
+- name: bootstrap workers
+  hosts: workers
+  become: yes
+  roles:
+  - k8s-worker
+  tags:
+  - k8s-worker
+
+# - name: verify stuff
+#   hosts: localhost
+#   connection: local
+#   roles:
+#     - kubectl
+#   tags:
+#     - kubectl
+#   become: true
+
+# - name: set up docker registry
+#   hosts: masters
+#   become: yes
+#   roles:
+#     - docker-registry
+#   tags:
+#     - docker-registry
+  
+  

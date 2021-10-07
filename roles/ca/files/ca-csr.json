@@ -1,0 +1,16 @@
+{
+    "CN": "kube-ca",
+    "key": {
+      "algo": "rsa",
+      "size": 2048
+    },
+    "names": [
+      {
+        "C": "DE",
+        "L": "Berlin",
+        "O": "ombadatech",
+        "OU": "CA",
+        "ST": "Berlin"
+      }
+    ]
+  }

@@ -1,0 +1,4 @@
+vault_localhost_sudo_password: "CrackThisifyoucan*8"
+vault_remote_sudo_password: "abc.123"
+vault_htuser: "ahmed"
+vault_htpasswd: "Brezn4ME!"

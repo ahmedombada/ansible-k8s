@@ -1,0 +1,36 @@
+- name: ensure directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /registry/
+    - /registry/certs
+    - /registry/auth
+
+- name: install Docker on Workers
+  include_role:
+    name: docker
+
+- name: pull image
+  shell: "cd /registry/ && docker run --rm --entrypoint htpasswd registry:2.6.2 -Bbn {{vault_htuser}} {{vault_htpasswd}} > auth/htpasswd"
+  register: result1
+
+- name: Show output result1
+  debug:
+    msg: "{{ result1.stdout_lines }}"
+
+- name: copy repo volume yaml config file
+  copy:
+    src: "{{ item }}"
+    dest: /home/ahmed/
+  with_items:
+    - repository-volume.yml
+    - docker-registry-pod.yml
+
+- name: create secrets
+  shell: "{{ item }}"
+  with_items:
+    - "kubectl create secret tls certs-secret --cert=/registry/certs/docker-registry.pem --key=/registry/certs/docker-registry-key.pem"
+    - "kubectl create secret generic auth-secret --from-file=/registry/auth/htpasswd"
+    - "kubectl create -f /home/ahmed/repository-volume.yml"
+    - "kubectl create -f /home/ahmed/docker-registry-pod.yml"

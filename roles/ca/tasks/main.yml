@@ -1,0 +1,118 @@
+# This implements https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/04-certificate-authority.md
+- name: Install cfssl
+  apt:
+    name: golang-cfssl
+    update_cache: yes
+
+- name: Always purge certificates directory first - otherwise old certs are used.
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+  - /k8s/certificates
+  - /opt/cfssl-config
+
+- name: Ensure dirs exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: ombadaah
+    mode: 0755
+  with_items:
+    - /k8s/certificates
+    - /opt/cfssl-config
+
+- name: Copy CA cfssl config files
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/cfssl-config/{{ item }}"
+  with_items:
+    - ca-config.json
+    - ca-csr.json
+
+- name: Generate CA key
+  shell: cfssl gencert -initca /opt/cfssl-config/ca-csr.json | cfssljson -bare ca
+  args:
+    chdir: /k8s/certificates
+    creates: /k8s/certificates/ca-key.pem
+
+- name: Template cfssl config files
+  template:
+    src: csr.json.j2
+    dest: "/opt/cfssl-config/{{ item.name }}-csr.json"
+  with_items:
+    - { name: worker-0,                prefix: 'system:node:', o: "system:nodes" }
+    - { name: worker-1,                prefix: 'system:node:', o: "system:nodes" }
+    - { name: kube-controller-manager, prefix: 'system:',      o: "system:kube-controller-manager" }
+    - { name: kube-proxy,              prefix: 'system:',      o: "system:node-proxier" }
+    - { name: kube-scheduler,          prefix: 'system:',      o: "system:kube-scheduler" }
+    - { name: kube-apiserver,          prefix: '',             o: Kubernetes }
+    - { name: service-account,         prefix: '',             o: Kubernetes }
+    - { name: admin,                   prefix: '',             o: "system:masters" }
+    - { name: docker-registry,         prefix: '',             o: "registry"}
+
+- name: Generate Client Certificates for admin, kube-controller-manager, kube-proxy, kube-scheduler, service-accounts
+  shell:
+   'cfssl gencert \
+      -ca=ca.pem \
+      -ca-key=ca-key.pem \
+      -config=/opt/cfssl-config/ca-config.json \
+      -profile=kubernetes \
+      /opt/cfssl-config/{{ item }}-csr.json | cfssljson -bare {{ item }}'
+  args:
+    chdir: /k8s/certificates
+    creates: "/k8s/certificates/{{ item }}-key.pem"
+  with_items:
+    - admin
+    - kube-controller-manager
+    - kube-proxy
+    - kube-scheduler
+    - service-account
+    - docker-registry
+
+- name: Generate Kubelet Client Certificates
+  shell:
+   'cfssl gencert \
+      -ca=ca.pem \
+      -ca-key=ca-key.pem \
+      -config=/opt/cfssl-config/ca-config.json \
+      -hostname={{ item.node }}.k8s,{{ item.ip }} \
+      -profile=kubernetes \
+      /opt/cfssl-config/{{ item.node }}-csr.json | cfssljson -bare {{ item.node }}'
+  args:
+    chdir: /k8s/certificates
+    creates: "/k8s/certificates/{{ item.node }}-key.pem"
+  with_items:
+    - { node: worker-0, ip: 192.168.178.220 }
+    - { node: worker-1, ip: 192.168.178.221 }
+
+- name: Retrieve internal master ip list from inventory
+  set_fact:
+    internal_master_ips: "{% for item in groups['masters'] %}{{ hostvars[item].inventory_hostname }}.k8s,{{ hostvars[item].ansible_host }}{{ ',' if not loop.last else ''}}{% endfor %}"
+
+- name: The internal master ip list
+  debug:
+    msg: "{{ internal_master_ips }}"
+
+- name: generate Kubernetes API Server Certificate
+  shell:
+   "cfssl gencert \
+      -ca=ca.pem \
+      -ca-key=ca-key.pem \
+      -config=/opt/cfssl-config/ca-config.json \
+      -hostname=10.32.0.1,{{ internal_master_ips }},external.k8s,127.0.0.1,kubernetes.default \
+      -profile=kubernetes \
+      /opt/cfssl-config/kube-apiserver-csr.json | cfssljson -bare kube-apiserver"
+  args:
+    chdir: /k8s/certificates
+    creates: "/k8s/certificates/kube-apiserver-key.pem"
+
+- name: change permissions of folder
+  file:
+    path: /k8s/certificates/
+    recurse: yes
+    owner: ombadaah
+
+  # Distribute the Client and Server Certificates
+  # is already done via Vagrant (/k8s/certificates)
+  

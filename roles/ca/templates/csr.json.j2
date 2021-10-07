@@ -1,0 +1,16 @@
+{
+  "CN": "{{ item.prefix }}{{ item.name }}",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "DE",
+      "L": "Berlin",
+      "O": "{{ item.o }}",
+      "OU": "ombadatech k8s cluster",
+      "ST": "Berlin"
+    }
+  ]
+}

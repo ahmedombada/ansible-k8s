@@ -1,0 +1,50 @@
+# Implements https://github.com/kelseyhightower/kubernetes-the-hard-way/blob/master/docs/05-kubernetes-configuration-files.md
+
+# But first kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-with-snap-on-ubuntu
+
+# this needs to be better
+# - name: update apt
+#   shell: "{{ item }}"
+#   with_items:
+#     - 'sudo apt-get update'
+#     - 'sudo apt-get install -y apt-transport-https ca-certificates curl'
+#     - 'sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg'
+#     - 'echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list'
+#     - 'sudo apt-get update'
+    
+- name: Install kubectl
+  shell: "sudo apt-get install -y kubectl"
+
+- name: Always purge configuration directory first - otherwise old certs are used.
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+  - /k8s/configurationfiles
+
+- name: Ensure that configuration directory exists
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /k8s/configurationfiles
+
+# Represents the files created with `kubectl config`
+- name: Template all kubeconfig files
+  template:
+    src: kubeconfig.yml.j2
+    dest: /k8s/configurationfiles/{{ item.name }}.kubeconfig
+  with_items:
+    - { name: worker-0,                prefix: 'system:node:', server: "{{ kubernetes_public_address}}" }
+    - { name: worker-1,                prefix: 'system:node:', server: "{{ kubernetes_public_address}}" }
+    - { name: kube-proxy,              prefix: 'system:',      server: "{{ kubernetes_public_address}}" }
+    - { name: kube-controller-manager, prefix: 'system:',      server: '127.0.0.1' }
+    - { name: kube-scheduler,          prefix: 'system:',      server: '127.0.0.1' }
+    - { name: admin,                   prefix: '',             server: '127.0.0.1' }
+
+- name: change permissions of folder
+  file:
+    path: /k8s/configurationfiles/
+    recurse: yes
+    owner: ombadaah

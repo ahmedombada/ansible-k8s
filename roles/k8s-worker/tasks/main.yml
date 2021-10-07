@@ -1,0 +1,109 @@
+- name: install Docker on Workers
+  include_role:
+    name: docker
+
+- name: install required packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - socat
+    - conntrack
+    - ipset
+    - unzip
+    - tar
+
+- name: check if swap is enabled
+  shell: "swapon --show"
+  register: result
+
+- name: disable swap
+  shell: "swapoff -a"
+  when: result.stdout != ""
+
+- name: create installation directories
+  file:
+    state: directory
+    path: "{{ item }}"
+  with_items:
+    - /var/lib/kubelet
+    - /var/lib/kube-proxy
+    - /var/lib/kubernetes
+    - /var/run/kubernetes
+    # - /etc/containerd/
+    # - /opt/cni/bin/
+    # - /etc/cni/net.d
+
+- name: download worker binaries
+  get_url:
+    url: "{{ item.src }}"
+    dest: "{{ item.dest}}/{{ item.name }}"
+    mode: 0755
+  with_items:
+    # - { src: 'https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz', dest: /home/ahmed, name: cni-plugins-linux-amd64-v0.9.1.tgz}
+    # - { src: 'https://github.com/containerd/containerd/releases/download/v1.4.4/containerd-1.4.4-linux-amd64.tar.gz', dest: /home/ahmed, name: containerd-1.4.4-linux-amd64.tar.gz }
+    - { src: 'https://github.com/opencontainers/runc/releases/download/v1.0.0-rc93/runc.amd64', dest: /home/ahmed,  name: runc}
+    - { src: 'https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/kube-proxy', dest: /usr/local/bin, name: kube-proxy }
+    - { src: 'https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/kubectl', dest: /usr/local/bin, name: kubectl }
+    - { src: 'https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/kubelet', dest: /usr/local/bin, name: kubelet }
+
+- name: download worker tars
+  unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+    creates: "{{ item.dest }}/{{ item.creates }}"
+  with_items:
+    - {src: 'https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.21.0/crictl-v1.21.0-linux-amd64.tar.gz', dest: /usr/local/bin, creates: crictl }
+
+# - name: unarchive containerd
+#   shell: "tar -xvf containerd-1.4.4-linux-amd64.tar.gz -C containerd"
+
+# - name: unarchive the cni plugins
+#   shell: "tar -xvf cni-plugins-linux-amd64-v0.9.1.tgz -C /opt/cni/bin/"
+
+# - name: move containerd stuff to /bin/
+#   shell: "mv containerd/bin/* /bin/"
+
+
+- name: create bridge template
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    # - { src: '10-bridge.conf.j2', dest: '/etc/cni/net.d/10-bridge.conf'}
+    - { src: 'kubelet-config.yaml.j2', dest: '/var/lib/kubelet/kubelet-config.yaml'}
+    - { src: 'kube-proxy-config.yaml.j2', dest: '/var/lib/kube-proxy/kube-proxy-config.yaml'}
+    - { src: 'kubelet.service.j2', dest: '/etc/systemd/system/kubelet.service'}
+
+- name: copy certs to kublet dir
+  copy:
+    src: "/home/ahmed/{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+  with_items:
+    - { src: "{{inventory_hostname}}-key.pem", dest: "/var/lib/kubelet/"}
+    - { src: "{{inventory_hostname}}.pem", dest: "/var/lib/kubelet/"}
+    - { src: "ca.pem", dest: "/var/lib/kubernetes/"}
+    - { src: "kube-proxy.kubeconfig", dest: "/var/lib/kube-proxy/kubeconfig"}
+    - { src: "{{inventory_hostname}}.kubeconfig", dest: "/var/lib/kubelet/kubeconfig"}
+
+- name: copy config files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    # - { src: "99-loopback.conf", dest: "/etc/cni/net.d/99-loopback.conf"}
+    # - { src: "config.toml", dest: "/etc/containerd/config.toml"}
+    # - { src: "containerd.service", dest: "/etc/systemd/system/containerd.service"}
+    # - { src: "kubelet.service", dest: "/etc/systemd/system/kubelet.service"}
+    - { src: "kube-proxy.service", dest: "/etc/systemd/system/kube-proxy.service"}
+
+- name: start worker services
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kubelet
+    - kube-proxy

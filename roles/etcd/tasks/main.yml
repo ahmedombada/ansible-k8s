@@ -1,0 +1,78 @@
+- name: download and extract etcd
+  unarchive:
+    src: https://github.com/coreos/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz
+    remote_src: yes
+    dest: /tmp
+    creates: /tmp/etcd-{{ etcd_version }}-linux-amd64.tar.gz
+
+- name: install etcd
+  copy:
+    src: "/tmp/etcd-{{ etcd_version }}-linux-amd64/{{ item }}"
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - etcd
+    - etcdctl
+
+- name: ensure dirs exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/etcd
+
+- name: copy ca.pem file
+  copy:
+    src: "/home/ahmed/{{ item }}"
+    dest: "/etc/etcd/{{ item }}"
+    remote_src: yes
+  with_items:
+    - ca.pem
+    - kube-apiserver-key.pem
+    - kube-apiserver.pem
+
+- name: create etcd service config
+  template:
+    src: templates/etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+
+- name: ensure etcd service is restarted
+  service:
+    name: etcd
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Verify, if etcd cluster has successfully started
+  shell: etcdctl member list --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/ca.pem --cert=/etc/etcd/kube-apiserver.pem --key=/etc/etcd/kube-apiserver-key.pem
+  environment:
+    ETCDCTL_API: 3
+  register: etcd_memberlist
+  until: etcd_memberlist.stdout.find("started") != -1
+  retries: 5
+  delay: 10
+  run_once: true
+
+- name: Show etcd member list
+  debug:
+    msg: "{{ etcd_memberlist.stdout_lines }}"
+  run_once: true
+
+- name: Verify etcd cluster health
+  shell: "etcdctl endpoint health --endpoints=https://127.0.0.1:2379 --cacert=/etc/etcd/ca.pem --cert=/etc/etcd/kube-apiserver.pem --key=/etc/etcd/kube-apiserver-key.pem"
+  environment:
+    ETCDCTL_API: 3
+  register: etcd_clusterhealth
+  until: etcd_clusterhealth.stdout.find("is healthy") != -1
+  retries: 5
+  delay: 10
+  run_once: true
+
+- name: Show etcd cluster health
+  debug:
+    msg: "{{ etcd_clusterhealth.stdout_lines }}"
+  run_once: true

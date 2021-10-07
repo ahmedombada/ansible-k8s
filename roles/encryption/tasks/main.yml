@@ -1,0 +1,22 @@
+- name: Check that the encryption-config.yaml exists
+  stat:
+    path: /k8s/encryption/encryption-config.yaml
+  register: stat_result
+
+- name: create encryption key
+  shell: head -c 32 /dev/urandom | base64
+  register: encryption_key
+  when: stat_result.stat.exists == False
+
+- name: ensure /k8s/encryption exist
+  file:
+    path: /k8s/encryption
+    state: directory
+    mode: 0755
+  when: stat_result.stat.exists == False
+
+- name: create encryption config
+  template:
+    src: encryption-config.yaml.j2
+    dest: /k8s/encryption/encryption-config.yaml
+  when: stat_result.stat.exists == False
