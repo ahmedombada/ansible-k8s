@@ -12,7 +12,6 @@ ExecStart=/usr/local/bin/kubelet \
   --kubeconfig=/var/lib/kubelet/kubeconfig \
   --node-ip={{ ansible_host }} \
   --register-node=true \
-  --allow-privileged \
   --v=2
 Restart=on-failure
 RestartSec=5

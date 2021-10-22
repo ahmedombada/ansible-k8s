@@ -1,3 +1,9 @@
+# to do:
+# 1. create ingress role
+# 2. HA proxy
+# 3. create cert manager role
+# 4. make workers pull images from private repo (https://www.youtube.com/watch?v=r15S2tBevoE)
+# 5. install cert manager (kubectl apply)
 # - hosts: all
 #   tasks:
 #   - apt:
@@ -28,7 +34,8 @@
       - service-account-key.pem
       - service-account.pem
   become: yes
-
+  tags:
+    - cpcm
 
 - name: copy docker-registry certs to /registry/certs
   hosts: masters
@@ -54,6 +61,8 @@
     - { src: '/k8s/certificates/{{inventory_hostname}}.pem', dest: '/home/ahmed/' }
     - { src: '/k8s/certificates/{{inventory_hostname}}-key.pem', dest: '/home/ahmed/' }
   become: yes
+  tags:
+    - cpcw
 
 - name: generate configuration files
   hosts: localhost

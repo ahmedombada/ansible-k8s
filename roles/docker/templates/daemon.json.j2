@@ -1,0 +1,17 @@
+{% if inventory_hostname == 'worker-0' %}
+{
+ "default-address-pools":
+ [
+ {"base":"10.200.0.0/24", "size":24}
+ ]
+}
+{%endif%}
+
+{% if inventory_hostname == 'worker-1' %}
+{
+ "default-address-pools":
+ [
+ {"base":"10.200.1.0/24", "size":24}
+ ]
+}
+{%endif%}
