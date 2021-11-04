@@ -25,7 +25,7 @@
   tasks:
   - copy:
       src: /k8s/certificates/{{item}}
-      dest: /home/ahmed/
+      dest: "{{vault_home_dir}}"
     with_items:
       - ca.pem
       - ca-key.pem
@@ -57,9 +57,9 @@
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
     with_items:
-    - { src: '/k8s/certificates/ca.pem', dest: '/home/ahmed/' }
-    - { src: '/k8s/certificates/{{inventory_hostname}}.pem', dest: '/home/ahmed/' }
-    - { src: '/k8s/certificates/{{inventory_hostname}}-key.pem', dest: '/home/ahmed/' }
+    - { src: '/k8s/certificates/ca.pem', dest: '{{vault_home_dir}}' }
+    - { src: '/k8s/certificates/{{inventory_hostname}}.pem', dest: '{{vault_home_dir}}' }
+    - { src: '/k8s/certificates/{{inventory_hostname}}-key.pem', dest: '{{vault_home_dir}}' }
   become: yes
   tags:
     - cpcw
@@ -78,7 +78,7 @@
   tasks:
   - copy:
       src: /k8s/configurationfiles/{{item}}
-      dest: /home/ahmed/
+      dest: "{{vault_home_dir}}"
     with_items:
       - admin.kubeconfig
       - kube-controller-manager.kubeconfig
@@ -93,8 +93,8 @@
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
     with_items:
-      - { src: '/k8s/configurationfiles/{{inventory_hostname}}.kubeconfig', dest: '/home/ahmed/' }
-      - { src: '/k8s/configurationfiles/kube-proxy.kubeconfig', dest: '/home/ahmed/' }
+      - { src: '/k8s/configurationfiles/{{inventory_hostname}}.kubeconfig', dest: '{{vault_home_dir}}' }
+      - { src: '/k8s/configurationfiles/kube-proxy.kubeconfig', dest: '{{vault_home_dir}}' }
   become: yes
 
 - name: create encryption key
@@ -111,7 +111,7 @@
   tasks:
   - copy:
       src: /k8s/encryption/{{item}}
-      dest: /home/ahmed/
+      dest: "{{vault_home_dir}}"
     with_items:
       - encryption-config.yaml
   become: yes
@@ -121,41 +121,72 @@
   hosts: masters
   become: yes
   roles:
-  - etcd
+    - etcd
   tags:
-  - etcd
+    - etcd
 
 - name: setup the control plane
   hosts: masters
   become: yes
   roles:
-  - controlplane
+    - controlplane
   tags:
-  - controlplane
+    - controlplane
 
 - name: bootstrap workers
   hosts: workers
   become: yes
   roles:
-  - k8s-worker
+    - k8s-worker
   tags:
-  - k8s-worker
+    - k8s-worker
 
-# - name: verify stuff
-#   hosts: localhost
-#   connection: local
-#   roles:
-#     - kubectl
-#   tags:
-#     - kubectl
-#   become: true
+- name: verify stuff
+  hosts: localhost
+  connection: local
+  roles:
+    - kubectl
+  tags:
+    - kubectl
 
-# - name: set up docker registry
-#   hosts: masters
-#   become: yes
-#   roles:
-#     - docker-registry
-#   tags:
-#     - docker-registry
+- name: set up an ingress kube-dns
+  hosts: localhost
+  connection: local
+  roles:
+    - kube-dns
+  tags:
+    - kube-dns  
+
+- name: set up an ingress controller
+  hosts: localhost
+  connection: local
+  roles:
+    - ingress-controller
+  tags:
+    - ingress-controller
+
+- name: set up cert-manager
+  hosts: localhost
+  connection: local
+  roles:
+    - cert-manager
+  tags:
+    - cert-manager
+
+- name: create service
+  hosts: localhost
+  connection: local
+  roles:
+    - create-service
+  tags:
+    - create-service
+
+- name: set up haproxy
+  hosts: loadbalancer
+  become: yes
+  roles:
+    - ha-proxy
+  tags:
+    - ha-proxy
   
   

@@ -1,0 +1,12 @@
+# dependencies ansible-galaxy collection install community.kubernetes
+- name: check if nginx ingress is already running
+  shell: kubectl get ns 
+  register: state
+
+- name: Show output
+  debug:
+    msg: "{{ state }}"
+
+
+- include: install-ingress-controller.yml
+  when: "'nginx-ingress' not in state.stdout"

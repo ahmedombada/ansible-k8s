@@ -1,0 +1,9 @@
+- name: copy the kube dns config file
+  copy:
+    src: kubedns.yml
+    dest: "{{vault_generated_files_dir}}/kubedns.yml"
+
+- name: create the dns service
+  shell: kubectl apply -f {{item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/kubedns.yml"

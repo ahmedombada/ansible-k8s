@@ -1,0 +1,53 @@
+- name: copy files to config dir
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: "default-server-secret.yml", dest: "{{vault_generated_files_dir}}/default-server-secret.yml" }
+    - { src: "ns-and-sa.yaml", dest: "{{vault_generated_files_dir}}/ns-and-sa.yaml" }    
+    - { src: "rbac.yaml", dest: "{{vault_generated_files_dir}}/rbac.yaml" }
+    - { src: "default-server-secret.yml", dest: "{{vault_generated_files_dir}}/default-server-secret.yml" }
+    - { src: "nginx-config.yaml", dest: "{{vault_generated_files_dir}}/nginx-config.yaml" }
+    - { src: "ingress-class.yaml", dest: "{{vault_generated_files_dir}}/ingress-class.yaml" }
+    - { src: "nginx-ingress.yaml", dest: "{{vault_generated_files_dir}}/nginx-ingress.yaml" }
+
+- name: create namespace
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/ns-and-sa.yaml"
+
+- name: create rbac
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/rbac.yaml"
+
+- name: create default server secret
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/default-server-secret.yml"
+
+- name: create config map
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/nginx-config.yaml"
+
+- name: create ingress-class
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/ingress-class.yaml"
+
+- name: create deamonset
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/nginx-ingress.yaml"
+
+- name: Verify that ingress pods are running
+  shell: kubectl get pods -n nginx-ingress
+  register: state
+  until: state.stdout.find("Running") != -1
+  retries: 5
+  delay: 10
+
+- name: Show output of k8s cluster state
+  debug:
+    msg: "{{ state.stdout_lines }}"

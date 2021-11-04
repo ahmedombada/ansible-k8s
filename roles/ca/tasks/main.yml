@@ -100,7 +100,7 @@
       -ca=ca.pem \
       -ca-key=ca-key.pem \
       -config=/opt/cfssl-config/ca-config.json \
-      -hostname={{public_name}},10.32.0.1,{{ internal_master_ips }},external.k8s,127.0.0.1,kubernetes.default \
+      -hostname={{vault_public_name}},10.32.0.1,{{ internal_master_ips }},external.k8s,127.0.0.1,kubernetes.default \
       -profile=kubernetes \
       /opt/cfssl-config/kube-apiserver-csr.json | cfssljson -bare kube-apiserver"
   args:

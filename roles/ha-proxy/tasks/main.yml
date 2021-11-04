@@ -1,0 +1,17 @@
+# install ha proxy
+- name: install ha proxy
+  apt:
+    pkg: haproxy
+    state: latest
+    update_cache: yes
+  become: true
+
+- name: configure ha proxy
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: restart haproxy
+  service:
+    name: "haproxy"
+    state: restarted

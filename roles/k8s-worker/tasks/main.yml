@@ -40,15 +40,6 @@
     - { src: 'https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/kubectl', dest: /usr/local/bin, name: kubectl }
     - { src: 'https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/kubelet', dest: /usr/local/bin, name: kubelet }
 
-# - name: download worker tars
-#   unarchive:
-#     src: "{{ item.src }}"
-#     dest: "{{ item.dest }}"
-#     remote_src: yes
-#     creates: "{{ item.dest }}/{{ item.creates }}"
-#   with_items:
-#     - {src: 'https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.21.0/crictl-v1.21.0-linux-amd64.tar.gz', dest: /usr/local/bin, creates: crictl }
-
 - name: create bridge template
   template:
     src: "{{ item.src }}"

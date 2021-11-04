@@ -10,6 +10,14 @@
 #     state: present
 #   when: ansible_os_family == "Darvin"
 
+- name: download master component binaries
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubernetes_version }}/bin/linux/amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: 0755
+  with_items:
+    - kubectl
+
 - name: Configuring kubectl for Remote Access - kubectl config set-cluster
   shell: "kubectl config set-cluster {{ kubernetes_cluster_name }} --certificate-authority={{ path_ca }} --embed-certs=true --server=https://192.168.178.210:6443"
 
@@ -22,25 +30,25 @@
 - name: Configuring kubectl for Remote Access - kubectl config use-context
   shell: "kubectl config use-context {{ kubernetes_cluster_name }}"
 
-# - name: Verify, if we are able to access the k8s cluster state
-#   shell: kubectl get componentstatuses
-#   register: k8s_cluster_state
-#   until: k8s_cluster_state.stdout.find("Healthy") != -1
-#   retries: 5
-#   delay: 10
+- name: Verify, if we are able to access the k8s cluster state
+  shell: kubectl get componentstatuses
+  register: k8s_cluster_state
+  until: k8s_cluster_state.stdout.find("Healthy") != -1
+  retries: 5
+  delay: 10
 
-# - name: Show output of k8s cluster state
-#   debug:
-#     msg: "{{ k8s_cluster_state.stdout_lines }}"
+- name: Show output of k8s cluster state
+  debug:
+    msg: "{{ k8s_cluster_state.stdout_lines }}"
 
-# - name: Verify, if we are able to access k8s node state
-#   shell: kubectl get nodes
-#   register: k8s_node_state
-#   until: k8s_node_state.stdout.find("Ready") != -1
-#   retries: 5
-#   delay: 10
+- name: Verify, if we are able to access k8s node state
+  shell: kubectl get nodes
+  register: k8s_node_state
+  until: k8s_node_state.stdout.find("Ready") != -1
+  retries: 5
+  delay: 10
 
-# - name: Show output of k8s node state
-#   debug:
-#     msg: "{{ k8s_node_state.stdout_lines }}"
+- name: Show output of k8s node state
+  debug:
+    msg: "{{ k8s_node_state.stdout_lines }}"
 

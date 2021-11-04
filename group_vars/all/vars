@@ -5,20 +5,23 @@ etcd_version: v3.3.26
 # Kubernetes & Dashboard versions must be compatible! see https://github.com/kubernetes/dashboard/wiki/Compatibility-matrix
 kubernetes_dashboard_version: v2.3.0
 
-kubernetes_cluster_name: kubernetes-the-ansible-way
+kubernetes_cluster_name: ombada-tech-cluster
 kubernetes_cluster_cidr: 10.200.0.0/16
 kubernetes_service_cluster_iprange: 10.32.0.0/24
 kubernetes_cluster_dns: 10.32.0.10
 
 kubernetes_public_address: 192.168.178.210
+cert_manager_version: v1.6.0
 
 path_ca: /k8s/certificates/ca.pem
 path_cert: /k8s/certificates/admin.pem
 path_key: /k8s/certificates/admin-key.pem
 
-ansible_user: ahmed
-ansible_local_user: ombadaah
+# ansible_user: ahmed
+# ansible_local_user: ombadaah
 
 LAN: 192.168.178.0/24
 
-public_name: ahmedombada.com
+public_name: ahmedombada.com #use this to add your public domain dns name to the api server cert
+
+registry: registry.ombada.tech:5000

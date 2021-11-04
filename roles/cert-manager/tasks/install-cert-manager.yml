@@ -1,0 +1,33 @@
+
+- name: install cert-manager with normal manifests
+  shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.yaml
+
+- name: wait for cert manager to be ready
+  wait_for:
+    timeout: 60
+  delegate_to: localhost
+
+- name: create cloudflare secrets file
+  template:
+    src: cloudflare.yml
+    dest: "{{vault_generated_files_dir}}/cloudflare.yml"
+  
+- name: create issuers file
+  template:
+    src: issuers.yml
+    dest: "{{vault_generated_files_dir}}/issuers.yml"
+
+- name: apply secret
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/cloudflare.yml"
+
+- name: Sleep for 10 seconds and continue with play
+  wait_for:
+    timeout: 10
+  delegate_to: localhost
+
+- name: apply issuer
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/issuers.yml"

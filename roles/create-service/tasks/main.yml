@@ -1,0 +1,20 @@
+- name: copy service to config file dir
+  copy: 
+    src: nginx-test.yml
+    dest: "{{vault_generated_files_dir}}/nginx-test.yml"
+
+- name: create service
+  shell: kubectl apply -f {{ item }}
+  with_items:
+    - "{{vault_generated_files_dir}}/nginx-test.yml"
+
+- name: Verify that the nginx pod is running
+  shell: kubectl describe deployment nginx
+  register: state
+  until: state.stdout.find("True") != -1
+  retries: 2
+  delay: 10
+
+- name: Show output
+  debug:
+    msg: "{{ state.stdout_lines }}"

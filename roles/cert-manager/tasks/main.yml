@@ -1,0 +1,13 @@
+# kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.0/cert-manager.yaml
+
+# dependencies ansible-galaxy collection install community.kubernetes
+- name: check if cert-manager is already running
+  shell: kubectl get ns 
+  register: state
+
+- name: Show output
+  debug:
+    msg: "{{ state }}"
+
+- include: install-cert-manager.yml
+  when: "'cert-manager' not in state.stdout" 

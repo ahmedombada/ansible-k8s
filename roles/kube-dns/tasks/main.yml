@@ -1,0 +1,11 @@
+- name: check if cert-manager is already running
+  shell: kubectl get svc --all-namespaces 
+  register: state
+
+- name: Show output
+  debug:
+    msg: "{{ state }}"
+
+
+- include: create-kubedns.yml
+  when: '"10.32.0.10" not in state.stdout' 

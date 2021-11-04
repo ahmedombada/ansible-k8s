@@ -1,7 +1,10 @@
 [localhost]
-127.0.0.1   ansible_ssh_user="{{ansible_local_user}}"   ansible_become_password="{{vault_localhost_sudo_password}}"
+127.0.0.1   ansible_ssh_user="{{vault_ansible_local_user}}"   ansible_become_password="{{vault_localhost_sudo_password}}"   connection=local
 [masters]
-master-0    ansible_host=192.168.178.210    ansible_ssh_user="{{ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
+master-0    ansible_host=192.168.178.210    ansible_ssh_user="{{vault_ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
 [workers]
-worker-0    ansible_host=192.168.178.220    ansible_ssh_user="{{ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
-worker-1    ansible_host=192.168.178.221    ansible_ssh_user="{{ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
+worker-0    ansible_host=192.168.178.220    ansible_ssh_user="{{vault_ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
+worker-1    ansible_host=192.168.178.221    ansible_ssh_user="{{vault_ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
+
+[loadbalancer]
+loadbalancer-0     ansible_host=192.168.178.230     ansible_ssh_user="{{vault_ansible_user}}"    ansible_become_password="{{vault_remote_sudo_password}}"
