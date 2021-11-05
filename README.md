@@ -1,6 +1,6 @@
 # ansible-k8s
 
-This is an Ansible playbook taht bootstraps a fully functioning k8s cluster + an nginx ingress controller + cert manager for managing certs + a test service (just a normal nginx image which can be accessed using the browser once everything is set up correctly).
+This is an Ansible playbook that bootstraps a fully functioning k8s cluster + an nginx ingress controller + cert manager for managing certs + a test service (just a normal nginx image which can be accessed using the browser once everything is set up correctly).
 
 The resulting cluster consists of 1 master node and 2 workers. if you would like to have more master or worker nodes, just edit the hosts file accordingly and the playbook will funtion teh same way (hopefully).
 
@@ -11,6 +11,10 @@ Note: This was tested with ubuntu 20.04
 2. A computer with anisble installed in it.
 3. A managed firewall/router, dont freak out, you probably already have this if you have internet at home (if you dont, then you should, take this as an opportunity buy one and replace the one that you currently have, you will not regret it :)), this device MUST be able to do port forwarding if you want your services to be reachable form the internet (i have a fritzbox 6591).
 4. All of machines mentioned above MUST layer 3 connectivity(translation: they should be able to ping each other ;).
+
+# Virtual machines specs
+1. Specs for both master and worker nodes (RAM: 4G, DISK: 30G).
+Note: This is not the minumum requirment, rather a comfortable set up. Im sure you can get away with less.
 
 # Must haves for the cert-manager role to work
 1. a cloudflare account.
@@ -51,11 +55,6 @@ There is an alternative here here, but this will require some work from your sid
 3. edit the ``` roles/cert-manager/tasks/install-cert-manager.yml ```, you need to remove or comment the ``` create cloudflare secrets file ``` 
 4. move on to the next section of this document
 
-# Virtual machines specs
-1. Specs for both master and worker nodes (RAM: 4G, DISK: 30G).
-
-Note: This is not the minumum requirment, rather a comfortable set up. Im sure you get away with less.
-
 <!-- # Prerequistes for running the cluster successfully
 1. Understanding PKI's and how certificates based authentication work
 2. An understanding of basic network concepts 
@@ -92,3 +91,5 @@ vault_public_name: YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to th
  9. Configure an entry in your internal dns server or hosts file (in linux: ``` /etc/resolv.conf ```, in windows: ```C:\Windows\System32\drivers\etc\hosts ```, its hidden under windows, so you need to say show all files, and you MUST run your editor as an administrator to make changes)
  10. If you've done everything correctly you should be able to reach your service by name from the browser.
  
+ # Bugs and Issues
+ Open a new Issue and i will try to solve it :).
