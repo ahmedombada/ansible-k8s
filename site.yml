@@ -1,9 +1,5 @@
 # to do:
-# 1. create ingress role
-# 2. HA proxy
-# 3. create cert manager role
 # 4. make workers pull images from private repo (https://www.youtube.com/watch?v=r15S2tBevoE)
-# 5. install cert manager (with kubectl apply)
 # - hosts: all
 #   tasks:
 #   - apt:

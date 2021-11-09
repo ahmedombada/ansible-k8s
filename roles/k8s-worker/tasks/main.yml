@@ -2,15 +2,14 @@
   include_role:
     name: docker
 
+- name: wait for docker
+  wait_for:
+    timeout: 30
+  delegate_to: localhost
+
 - name: install required packages
   apt:
-    name: "{{ item }}"
-  with_items:
-    - socat
-    - conntrack
-    - ipset
-    - unzip
-    - tar
+    name: ['socat', 'conntrack', 'ipset', 'unzip', 'tar']
 
 - name: check if swap is enabled
   shell: "swapon --show"
