@@ -1,9 +1,8 @@
 # ansible-k8s
 
-# What is this
-This Ansible playbook bootstraps a fully functioning k8s cluster + an nginx ingress controller + cert manager for managing certs + a test service (just a normal nginx image which can be accessed using the browser once everything is set up correctly).
+This is an Ansible playbook that bootstraps a fully functioning k8s cluster + an nginx ingress controller + cert manager for managing certs + a test service (just a normal nginx image which can be accessed using the browser once everything is set up correctly).
 
-The resulting cluster consists of 1 master node and 2 workers. if you would like to have more masters or worker nodes, just edit the hosts file accordingly and the playbook will funtion teh same way (hopefully).
+The resulting cluster consists of 1 master node and 2 workers. if you would like to have more master or worker nodes, just edit the hosts file accordingly and the playbook will funtion teh same way (hopefully).
 
 Note: This was tested with ubuntu 20.04
 
@@ -13,12 +12,16 @@ Note: This was tested with ubuntu 20.04
 3. A managed firewall/router, dont freak out, you probably already have this if you have internet at home (if you dont, then you should, take this as an opportunity buy one and replace the one that you currently have, you will not regret it :)), this device MUST be able to do port forwarding if you want your services to be reachable form the internet (i have a fritzbox 6591).
 4. All of machines mentioned above MUST layer 3 connectivity(translation: they should be able to ping each other ;).
 
+# Virtual machines specs
+1. Specs for both master and worker nodes (RAM: 4G, DISK: 30G).
+Note: This is not the minumum requirment, rather a comfortable set up. Im sure you can get away with less.
+
 # Must haves for the cert-manager role to work
 1. a cloudflare account.
 2. an API Key or token with sufficient rights.
 3. domain name that you own.
 
-# What if you dont have a cloud flare account?
+# What if you dont have a cloudflare account?
 Do you want TLS?
 # No:
 Really? you should. But if you insist, then you really dont need the cert-manager role and the create-service role, you can just comment them out in the ``` site.yml ``` file and run the playbook normally. Then create a service and access it by ip to test the cluster like this: 
@@ -52,11 +55,6 @@ There is an alternative here here, but this will require some work from your sid
 3. edit the ``` roles/cert-manager/tasks/install-cert-manager.yml ```, you need to remove or comment the ``` create cloudflare secrets file ``` 
 4. move on to the next section of this document
 
-# Virtual machines specs
-1. Specs for both master and worker nodes (RAM: 4G, DISK: 30G).
-
-Note: This is not the minumum requirment, rather a comfortable set up. Im sure you get away with less.
-
 <!-- # Prerequistes for running the cluster successfully
 1. Understanding PKI's and how certificates based authentication work
 2. An understanding of basic network concepts 
@@ -64,8 +62,8 @@ Note: This is not the minumum requirment, rather a comfortable set up. Im sure y
 
 # Set up
 
-1. create a .vault_pass file and write a password.
-2. create your own vault var file and place it in group_vars/all/vault.
+1. Create a .vault_pass file and write a password.
+2. Create your own vault var file and place it in group_vars/all/vault.
 3. Encrypt it with ``` ansible-vault encrypt group_vars/all/vault ```
  
 the vault file MUST HAVE THE FOLLOWING VALUES, except the last one, its not neccessarry unless you want to reach your cluster form the internet:
@@ -81,14 +79,17 @@ vault_generated_files_dir: WHERE YOU WANT TO STORE YOUR CONFIG FILES
 vault_home_dir: /home/ahmed/  HOME DR IN THE ANISBLE VMS, USUALLY (/home/user/)
 vault_public_name: YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to the API server certificate, in case you want to access it by DNS name)
 ```
-4. change the service file located in ``` roles/create-service/files/nginx-test.yml ```. (you need to change the host entries in the ingress part, instead of ``` nginx-k8s.ombada.tech ```, it should be whatever name that you give it). 
-6. make sure that the run_playbook file is executable ``` chmod +x run_playbook ``` should do the trick
-7. run the playbook ```./run_playbook ```
-8. after the playbook runs, you can verify by issuing the following commands:
+4. Change the service file located in ``` roles/create-service/files/nginx-test.yml ```. (you need to change the host entries in the ingress part, instead of ``` nginx-k8s.ombada.tech ```, it should be whatever name that you give it). 
+6. Make sure that the run_playbook file is executable ``` chmod +x run_playbook ``` should do the trick
+7. Run the playbook ```./run_playbook ```
+8. After the playbook runs, you can verify by issuing the following commands:
  ``` kubectl get nodes ```
  ``` kubectl get pods --all-namespaces ```
  ``` kubectl get svc --all-namespaces ```
  ``` kubectl get ing ```
  ``` kubectl get certs ```
+ 9. Configure an entry in your internal dns server or hosts file (in linux: ``` /etc/resolv.conf ```, in windows: ```C:\Windows\System32\drivers\etc\hosts ```, its hidden under windows, so you need to say show all files, and you MUST run your editor as an administrator to make changes)
+ 10. If you've done everything correctly you should be able to reach your service by name from the browser.
  
- 
+ # Bugs and Issues
+ Open a new Issue and i will try to solve it :).
