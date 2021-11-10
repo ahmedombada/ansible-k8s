@@ -54,7 +54,7 @@ There is an alternative here here, but this will require some work from your sid
 2. Edit the ``` roles/cert-manager/templates/issuers.yml ```
 3. Edit the ``` roles/cert-manager/tasks/install-cert-manager.yml ```, you need to remove or comment the ``` create cloudflare secrets file ``` 
 4. Replace the entry ```manager.io/issuer```located in ```roles/create-service/files/nginx-test.yml``` to fit the name of the issuer you created.  
-5. move on to the next section of this document
+5. Move on to the next section of this document
 
 <!-- # Prerequistes for running the cluster successfully
 1. Understanding PKI's and how certificates based authentication work
