@@ -49,7 +49,6 @@
     - { name: kube-apiserver,          prefix: '',             o: Kubernetes }
     - { name: service-account,         prefix: '',             o: Kubernetes }
     - { name: admin,                   prefix: '',             o: "system:masters" }
-    - { name: docker-registry,         prefix: '',             o: "registry"}
 
 - name: Generate Client Certificates for admin, kube-controller-manager, kube-proxy, kube-scheduler, service-accounts
   shell:
@@ -68,8 +67,7 @@
     - kube-proxy
     - kube-scheduler
     - service-account
-    - docker-registry
-
+    
 - name: Generate Kubelet Client Certificates
   shell:
    'cfssl gencert \

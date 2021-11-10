@@ -1,11 +1,12 @@
-# to do:
-# 4. make workers pull images from private repo (https://www.youtube.com/watch?v=r15S2tBevoE)
-# - hosts: all
-#   tasks:
-#   - apt:
-#       cache_valid_time: 3600
-#       update_cache: yes
-#   become: yes
+- hosts: 
+    - masters
+    - workers
+    - loadbalancer
+  tasks:
+  - apt:
+      cache_valid_time: 3600
+      update_cache: yes
+  become: yes
 
 - name: set up the certificate authority
   hosts: localhost
@@ -30,21 +31,6 @@
       - service-account-key.pem
       - service-account.pem
   become: yes
-  tags:
-    - cpcm
-
-- name: copy docker-registry certs to /registry/certs
-  hosts: masters
-  tasks:
-  - copy:
-      src: /k8s/certificates/{{item}}
-      dest: /registry/certs/
-    with_items:
-      - docker-registry.pem
-      - docker-registry-key.pem
-  become: yes
-  tags:
-    - cpr
 
 - name: copy certs to worker nodes
   hosts: workers
@@ -57,8 +43,6 @@
     - { src: '/k8s/certificates/{{inventory_hostname}}.pem', dest: '{{vault_home_dir}}' }
     - { src: '/k8s/certificates/{{inventory_hostname}}-key.pem', dest: '{{vault_home_dir}}' }
   become: yes
-  tags:
-    - cpcw
 
 - name: generate configuration files
   hosts: localhost
@@ -67,7 +51,7 @@
     - configurationfiles
   tags:
     - configurationfiles
-  become: true
+  become: yes
 
 - name: copy configuration files to master nodes
   hosts: masters
