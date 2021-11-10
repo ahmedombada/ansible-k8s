@@ -75,8 +75,8 @@ vault_ansible_user: "REMOTE USER (THE USER YOU USE TO SSH TO YOUR NODES)"
 vault_ansible_local_user: "YOU LOCAL USER, YOUR LAPTOP/DESKTOP USER, WHERE YOU ARE RUNNING THE SCRIPT FROM"
 vault_cloudflare_api_key: "API_KEY"
 vault_issuer_email: "CLOUDFLARE EMAIL"
-vault_generated_files_dir: "WHERE YOU WANT TO STORE YOUR CONFIG FILES (EX. /home/user/folder), NOTE:NO BACKSLASH AT THE END"
-vault_home_dir: "HOME DIR IN THE ANISBLE VMS, USUALLY (/home/user/) NOTE: WITH BACKSLASH AT THE END"
+vault_generated_files_dir: "WHERE YOU WANT TO STORE YOUR CONFIG FILES (EX. /home/user/folder), NOTE:NO SLASH AT THE END"
+vault_home_dir: "HOME DIR IN THE ANISBLE VMS, USUALLY (/home/user/) NOTE: WITH A SLASH AT THE END"
 vault_public_name: "YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to the API server certificate, in case you want to access it by DNS name)"
 ```
 4. Change the service file located in ``` roles/create-service/files/nginx-test.yml ```. (you need to change the host entries in the ingress part, instead of ``` nginx-k8s.ombada.tech ```, it should be whatever name that you give it). 
