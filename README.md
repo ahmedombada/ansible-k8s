@@ -80,7 +80,7 @@ vault_home_dir: "HOME DIR IN THE ANISBLE VMS, USUALLY (/home/user/) NOTE: WITH A
 vault_public_name: "YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to the API server certificate, in case you want to access it by DNS name)"
 ```
 4. Change the service file located in ``` roles/create-service/files/nginx-test.yml ```. (you need to change the host entries in the ingress part, instead of ``` nginx-k8s.ombada.tech ```, it should be whatever name that you give it). 
-6. Make sure that the run_playbook file is executable ``` chmod +x run_playbook ``` should do the trick
+6. Make sure that the run_playbook file is executable ``` sudo chmod +x run_playbook ``` should do the trick
 7. Run the playbook ```./run_playbook ```
 8. After the playbook runs, you can verify by issuing the following commands:
  ``` kubectl get nodes ```
