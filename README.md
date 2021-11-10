@@ -89,7 +89,7 @@ vault_public_name: "YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to t
  ``` kubectl get ing ```
  ``` kubectl get certs ```
  9. Configure an entry in your internal dns server or hosts file (in linux: ``` /etc/resolv.conf ```, in windows: ```C:\Windows\System32\drivers\etc\hosts ```, its hidden under windows, so you need to say show all files, and you MUST run your editor as an administrator to make changes)
- 10. If you've done everything correctly you should be able to reach your service by name from the browser.
+ 10. If you've done everything correctly, you should be able to reach your service by name from the browser.
  
  # Bugs and Issues
  Open a new Issue and i will try to solve it :).
