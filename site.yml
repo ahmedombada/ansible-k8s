@@ -8,6 +8,14 @@
       update_cache: yes
   become: yes
 
+- name: set up haproxy
+  hosts: loadbalancer
+  become: yes
+  roles:
+    - ha-proxy
+  tags:
+    - ha-proxy
+
 - name: set up the certificate authority
   hosts: localhost
   connection: local
@@ -160,13 +168,5 @@
     - create-service
   tags:
     - create-service
-
-- name: set up haproxy
-  hosts: loadbalancer
-  become: yes
-  roles:
-    - ha-proxy
-  tags:
-    - ha-proxy
   
   

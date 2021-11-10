@@ -67,7 +67,7 @@
     - kube-proxy
     - kube-scheduler
     - service-account
-    
+
 - name: Generate Kubelet Client Certificates
   shell:
    'cfssl gencert \
@@ -92,13 +92,21 @@
   debug:
     msg: "{{ internal_master_ips }}"
 
+- name: get the load-balancer ip
+  set_fact:
+    load_balancer_ips: "{% for item in groups['loadbalancer'] %}{{ hostvars[item].inventory_hostname }}.k8s,{{ hostvars[item].ansible_host }}{{ ',' if not loop.last else ''}}{% endfor %}"
+
+- name: The internal master ip list
+  debug:
+    msg: "{{ load_balancer_ips }}"
+
 - name: generate Kubernetes API Server Certificate
   shell:
    "cfssl gencert \
       -ca=ca.pem \
       -ca-key=ca-key.pem \
       -config=/opt/cfssl-config/ca-config.json \
-      -hostname={{vault_public_name}},10.32.0.1,{{ internal_master_ips }},external.k8s,127.0.0.1,kubernetes.default \
+      -hostname={{vault_public_name}},10.32.0.1,{{ internal_master_ips }},{{ load_balancer_ips }},external.k8s,127.0.0.1,kubernetes.default \
       -profile=kubernetes \
       /opt/cfssl-config/kube-apiserver-csr.json | cfssljson -bare kube-apiserver"
   args:

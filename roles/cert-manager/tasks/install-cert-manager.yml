@@ -2,7 +2,7 @@
 - name: install cert-manager with normal manifests
   shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/{{ cert_manager_version }}/cert-manager.yaml
 
-- name: wait for cert manager to be ready
+- name: wait 60 seconds for cert manager to be ready
   wait_for:
     timeout: 60
   delegate_to: localhost

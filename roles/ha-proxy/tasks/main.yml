@@ -1,4 +1,9 @@
 # install ha proxy
+- name: wait 15 seconds for apt lock
+  wait_for:
+    timeout: 15
+  delegate_to: localhost
+
 - name: install ha proxy
   apt:
     pkg: haproxy

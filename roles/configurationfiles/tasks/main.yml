@@ -36,12 +36,12 @@
     src: kubeconfig.yml.j2
     dest: /k8s/configurationfiles/{{ item.name }}.kubeconfig
   with_items:
-    - { name: worker-0,                prefix: 'system:node:', server: "{{ kubernetes_public_address }}" }
-    - { name: worker-1,                prefix: 'system:node:', server: "{{ kubernetes_public_address }}" }
-    - { name: kube-proxy,              prefix: 'system:',      server: "{{ kubernetes_public_address }}" }
+    - { name: worker-0,                prefix: 'system:node:', server: "{{ vault_kubernetes_public_address }}" }
+    - { name: worker-1,                prefix: 'system:node:', server: "{{ vault_kubernetes_public_address }}" }
+    - { name: kube-proxy,              prefix: 'system:',      server: "{{ vault_kubernetes_public_address }}" }
     - { name: kube-controller-manager, prefix: 'system:',      server: '127.0.0.1' }
     - { name: kube-scheduler,          prefix: 'system:',      server: '127.0.0.1' }
-    - { name: admin,                   prefix: '',             server: '{{ kubernetes_public_address }}' }
+    - { name: admin,                   prefix: '',             server: '{{ vault_kubernetes_public_address }}' }
 
 - name: change permissions of folder
   file:

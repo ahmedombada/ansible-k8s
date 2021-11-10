@@ -33,14 +33,28 @@ defaults
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
 
-frontend http_front
+frontend kube_api
+  bind *:6443
+  mode tcp
+  option tcplog
+  stats uri /haproxy?stats
+  default_backend kube_back
+
+backend kube_back
+  mode tcp
+  balance roundrobin
+{% for i in groups ["masters"]%}
+  server master-{{ loop.index0 }} {{hostvars[i].ansible_host }}:6443
+{%endfor%}
+
+frontend https_front
   bind *:443
   mode tcp
   option tcplog
   stats uri /haproxy?stats
-  default_backend http_back
+  default_backend https_back
 
-backend http_back
+backend https_back
   mode tcp
   balance roundrobin
 {% for i in groups ["workers"]%}

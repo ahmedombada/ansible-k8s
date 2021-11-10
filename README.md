@@ -79,6 +79,7 @@ vault_generated_files_dir: "WHERE YOU WANT TO STORE YOUR CONFIG FILES (EX. /home
 vault_home_dir: "HOME DIR IN THE ANISBLE VMS, USUALLY (/home/user/) NOTE: WITH A SLASH AT THE END"
 vault_public_name: "YOUR PUBLIC DOMAIN, IF YOU HAVE ONE (this will be added to the API server certificate, in case you want to access it by DNS name)"
 vault_LAN: "YOUR HOME NETWORK CIDR, check your router, or issue ```ip a``` on linux or ```ifconfig/all``` on windows"
+vault_kubernetes_public_address: "{{ hostvars['loadbalancer-0'].ansible_host }}" "we will use the loadbalancer to forward traffic to our api servers, This way if one fails, another takes over."
 ```
 4. Change the service file located in ``` roles/create-service/files/nginx-test.yml ```. (you need to change the host entries in the ingress part, instead of ``` nginx-k8s.ombada.tech ```, it should be whatever name that you give it). 
 6. Make sure that the run_playbook file is executable ``` sudo chmod +x run_playbook ``` should do the trick
