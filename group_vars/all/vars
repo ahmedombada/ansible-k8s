@@ -22,6 +22,3 @@ path_key: /k8s/certificates/admin-key.pem
 
 LAN: 192.168.178.0/24
 
-public_name: ahmedombada.com #use this to add your public domain dns name to the api server cert
-
-registry: registry.ombada.tech:5000
