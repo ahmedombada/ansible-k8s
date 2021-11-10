@@ -16,9 +16,3 @@ cert_manager_version: v1.6.0
 path_ca: /k8s/certificates/ca.pem
 path_cert: /k8s/certificates/admin.pem
 path_key: /k8s/certificates/admin-key.pem
-
-# ansible_user: ahmed
-# ansible_local_user: ombadaah
-
-LAN: 192.168.178.0/24
-

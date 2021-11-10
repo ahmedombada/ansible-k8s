@@ -70,7 +70,7 @@
 - name: allow pod communication
   ansible.builtin.iptables:
     chain: FORWARD
-    source: "{{ LAN }}"
+    source: "{{ vault_LAN }}"
     jump: ACCEPT
 
 - name: start worker services
