@@ -10,7 +10,7 @@ Note: This was tested with ubuntu 20.04
 1. Four ubuntu 20.04 virtual machines.
 2. A computer with anisble installed in it.
 3. A managed firewall/router, dont freak out, you probably already have this if you have internet at home (if you dont, then you should, take this as an opportunity buy one and replace the one that you currently have, you will not regret it :)), this device MUST be able to do port forwarding if you want your services to be reachable form the internet (i have a fritzbox 6591).
-4. All of machines mentioned above MUST layer 3 connectivity(translation: they should be able to ping each other ;).
+4. All of machines mentioned above MUST layer 3 connectivity(translation: they should be able to ping each other.
 
 # Virtual machines specs
 1. Specs for both master and worker nodes (RAM: 4G, DISK: 30G).
@@ -51,9 +51,10 @@ Good.
 There is an alternative here here, but this will require some work from your side. you need to edit, specifically the issuers file located in ``` roles/cert-manager/templates/issuers.yml ```
 
 1. Read this: https://cert-manager.io/docs/tutorials/acme/http-validation/
-2. edit the ``` roles/cert-manager/templates/issuers.yml ```
-3. edit the ``` roles/cert-manager/tasks/install-cert-manager.yml ```, you need to remove or comment the ``` create cloudflare secrets file ``` 
-4. move on to the next section of this document
+2. Edit the ``` roles/cert-manager/templates/issuers.yml ```
+3. Edit the ``` roles/cert-manager/tasks/install-cert-manager.yml ```, you need to remove or comment the ``` create cloudflare secrets file ``` 
+4. Replace the entry ```manager.io/issuer```located in ```roles/create-service/files/nginx-test.yml``` to fit the name of the issuer you created.  
+5. move on to the next section of this document
 
 <!-- # Prerequistes for running the cluster successfully
 1. Understanding PKI's and how certificates based authentication work
