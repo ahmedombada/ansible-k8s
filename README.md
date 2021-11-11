@@ -67,7 +67,7 @@ There is an alternative here here, but this will require some work from your sid
 2. Create your own vault var file and place it in group_vars/all/vault.
 3. Encrypt it with ``` ansible-vault encrypt group_vars/all/vault ```
  
-the vault file MUST HAVE THE FOLLOWING VALUES, except the last one, its not neccessarry unless you want to reach your cluster form the internet:
+the vault file MUST HAVE THE FOLLOWING VALUES, except vault_public_name, its not neccessarry unless you want to reach your cluster form the internet:
 
 ```
 vault_localhost_sudo_password: "YOUR LOCAL PASSWORD"
